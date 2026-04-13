@@ -62,7 +62,7 @@ BugHunter AI is a **free, open-source** CLI tool for Kali Linux that uses AI to 
 ### Quick Install (Kali Linux)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/bughunter-ai.git
+git clone https://github.com/1lo1lo1/bughunter-ai.git
 cd bughunter-ai
 chmod +x scripts/install.sh
 ./scripts/install.sh
@@ -71,7 +71,7 @@ chmod +x scripts/install.sh
 ### Manual Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/bughunter-ai.git
+git clone https://github.com/1lo1lo1/bughunter-ai.git
 cd bughunter-ai
 pip install -e ".[all]"
 bughunter --help
