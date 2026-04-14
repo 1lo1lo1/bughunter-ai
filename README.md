@@ -34,3 +34,25 @@ bughunter discover target.com --output subdomains.txt
 
 # AI-powered analysis
 bughunter scan-url https://target.com --ai --model ollama:llama3
+📋 Commands
+Table
+Command	Description	Example
+scan	Scan local files/directories	bughunter scan ./src/ --deep
+scan-url	Scan live website	bughunter scan-url https://site.com --depth 2
+discover	Find subdomains via OSINT	bughunter discover site.com
+🎯 Real-World Results
+Swiss National Bank (snb.ch) testing:
+✅ 47 subdomains discovered
+✅ 64 false positives → 0 (with smart filtering)
+✅ Actual security issues found, not noise
+🛠️ Tech Stack
+Python 3.8+
+Typer (CLI framework)
+Rich (terminal UI)
+Requests/aiohttp (HTTP)
+Ollama (local AI)
+📄 License
+MIT License — free for personal and commercial use.
+🤝 Contributing
+Stars, issues, and PRs welcome!
+GitHub: https://github.com/1lo1lo1/bughunter-ai
