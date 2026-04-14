@@ -1,4 +1,5 @@
 """
+from bughunter.utils.fp_filter import is_likely_false_positive
 BugHunter AI — Secrets Analyzer
 Finds API keys, tokens, credentials, and other secrets in source code
 """
@@ -152,6 +153,12 @@ class SecretsAnalyzer:
                     detector="secrets",
                     confidence=0.85,
                 )
+                # False Positive Check
+                is_fp, fp_reason = is_likely_false_positive(matched, snippet_text)
+                if is_fp:
+                    vuln.false_positive = True
+                    vuln.false_positive_reason = fp_reason
+                    vuln.severity = Severity.INFO
                 results.append(vuln)
 
         return results

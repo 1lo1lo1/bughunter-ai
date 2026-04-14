@@ -1,70 +1,118 @@
 """
-BugHunter AI — False Positive Filter
-Reduces noise by filtering out likely false positives
+False Positive Filter for BugHunter AI
+Reduces noise from CMS UUIDs, image hashes, etc.
 """
-from __future__ import annotations
-
 import re
-from pathlib import Path
-from typing import List
+from typing import Union, Any
 
-from bughunter.models import Vulnerability
+# Patterns that indicate false positives
+JCR_UUID_PATTERN = re.compile(r'jcr:[a-f0-9-]{36}', re.IGNORECASE)
+IMAGE_HASH_PATTERN = re.compile(r'/hash/[a-f0-9]{32}', re.IGNORECASE)
+CMS_IMAGING_PATTERN = re.compile(r'\.imaging/flex/', re.IGNORECASE)
+VERSION_PATTERN = re.compile(r'version/\d+', re.IGNORECASE)
+FILLCOLOR_PATTERN = re.compile(r'fillColor/-?\d+', re.IGNORECASE)
 
-# Test file patterns — lower confidence for test code
-TEST_PATTERNS = [
-    re.compile(r'(?i)(test_|_test\.|spec\.|\.spec\.|\/tests\/|\/test\/|__tests__|mock|fixture|example)'),
-]
+def is_likely_false_positive(secret_value: str, surrounding_context: str) -> tuple[bool, str]:
+    """
+    Check if a detected secret is likely a false positive.
+    
+    Returns:
+        (is_fp: bool, reason: str)
+    """
+    # Check 1: Joomla/Adobe CRX content repository UUID
+    if JCR_UUID_PATTERN.search(secret_value):
+        return True, "Joomla/CRX content ID (not a secret)"
+    
+    # Check 2: Image hash in URL path
+    if IMAGE_HASH_PATTERN.search(surrounding_context):
+        return True, "Image processing hash (not a secret)"
+    
+    # Check 3: CMS imaging system
+    if CMS_IMAGING_PATTERN.search(surrounding_context):
+        return True, "CMS image URL (not a secret)"
+    
+    # Check 4: Version number in path
+    if VERSION_PATTERN.search(surrounding_context):
+        return True, "Version number in URL"
+    
+    # Check 5: fillColor parameter (image processing)
+    if FILLCOLOR_PATTERN.search(surrounding_context):
+        return True, "Image processing parameter"
+    
+    # Check 6: UUID in image src/srcset
+    if any(x in surrounding_context.lower() for x in ['src=', 'srcset=', 'data-srcset=']):
+        if re.match(r'^[a-f0-9-]{36}$', secret_value.replace('jcr:', '')):
+            return True, "Image UUID in HTML attribute"
+    
+    return False, ""
 
-# Comment patterns
-COMMENT_PATTERNS = [
-    re.compile(r'^\s*#'),    # Python comment
-    re.compile(r'^\s*//'),   # JS/Java comment
-    re.compile(r'^\s*/\*'),  # Block comment start
-    re.compile(r'^\s*\*'),   # Block comment continuation
-]
+def _get_finding_value(finding: Any, attr_name: str, default: str = '') -> str:
+    """Get value from finding (dict or object)"""
+    if isinstance(finding, dict):
+        return finding.get(attr_name, default)
+    else:
+        # Vulnerability object
+        return getattr(finding, attr_name, default)
 
-# Safe patterns — if line contains these, likely not vulnerable
-SAFE_INDICATORS = {
-    "cors": ["whitelist", "allowlist", "validate", "check_origin", "allowed_origins", "ALLOWED_ORIGINS"],
-    "sqli": ["parameterized", "prepared", "escape", "sanitize", "orm", "ORM", "sqlalchemy"],
-    "xss": ["escape", "sanitize", "DOMPurify", "encodeURIComponent", "htmlspecialchars"],
-    "secrets": ["os.getenv", "environ.get", "getenv", "os.environ", "config.", "settings.", "vault", "placeholder", "example"],
-}
+def _get_snippet_content(finding: Any) -> str:
+    """Get snippet content from finding"""
+    if isinstance(finding, dict):
+        snippet = finding.get('snippet', {})
+        if isinstance(snippet, dict):
+            return snippet.get('content', '')
+        return str(snippet)
+    else:
+        # Vulnerability object
+        snippet = getattr(finding, 'snippet', None)
+        if snippet is None:
+            return ''
+        if hasattr(snippet, 'content'):
+            return snippet.content
+        return str(snippet)
+
+def filter_findings(findings: list) -> list:
+    """Filter out false positives from findings list."""
+    filtered = []
+    for finding in findings:
+        # Get secret value and context from finding (works with both dict and Vulnerability object)
+        secret_value = _get_finding_value(finding, 'matched_pattern', '')
+        context = _get_snippet_content(finding)
+        
+        is_fp, reason = is_likely_false_positive(secret_value, context)
+        
+        if is_fp:
+            # Mark as false positive but keep for reference
+            if isinstance(finding, dict):
+                finding['false_positive'] = True
+                finding['false_positive_reason'] = reason
+                finding['severity'] = 'INFO'
+            else:
+                # Vulnerability object
+                finding.false_positive = True
+                finding.false_positive_reason = reason
+                finding.severity = 'INFO'
+            # Skip false positives - don't add to filtered list
+            continue
+        
+        filtered.append(finding)
+    
+    return filtered
 
 
 class FalsePositiveFilter:
-    """Filters likely false positives from vulnerability results."""
-
-    def filter(self, vulns: List[Vulnerability]) -> List[Vulnerability]:
-        return [v for v in vulns if not self._is_false_positive(v)]
-
-    def _is_false_positive(self, vuln: Vulnerability) -> bool:
-        # Check if in test file
-        path_str = str(vuln.file_path)
-        for pat in TEST_PATTERNS:
-            if pat.search(path_str):
-                vuln.confidence *= 0.5
-                vuln.false_positive_score += 0.4
-
-        # Check if the matched line is a comment
-        if vuln.snippet:
-            lines = vuln.snippet.content.splitlines()
-            matched_lines = [l for i, l in enumerate(lines, start=vuln.snippet.start_line)
-                           if i == vuln.line_number]
-            if matched_lines:
-                line = matched_lines[0]
-                for cp in COMMENT_PATTERNS:
-                    if cp.match(line):
-                        return True  # Definitely FP — it's in a comment
-
-        # Check for safe indicators
-        cat = vuln.category.value
-        indicators = SAFE_INDICATORS.get(cat, [])
-        if vuln.snippet and indicators:
-            snippet_lower = vuln.snippet.content.lower()
-            if any(ind.lower() in snippet_lower for ind in indicators):
-                vuln.confidence *= 0.6
-                vuln.false_positive_score += 0.3
-
-        # Filter out if FP score too high
-        return vuln.false_positive_score >= 0.9
+    """Wrapper class for backward compatibility with core.py"""
+    
+    def __init__(self):
+        pass
+    
+    def check(self, secret_value: str, context: str) -> tuple[bool, str]:
+        """Check if finding is false positive"""
+        return is_likely_false_positive(secret_value, context)
+    
+    def filter_list(self, findings: list) -> list:
+        """Filter list of findings"""
+        return filter_findings(findings)
+    
+    def filter(self, findings: list) -> list:
+        """Alias for filter_list for backward compatibility with core.py"""
+        return self.filter_list(findings)

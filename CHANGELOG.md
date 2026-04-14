@@ -40,3 +40,22 @@
 - Multiple output formats: HTML, JSON, SARIF, Markdown
 - False positive filter
 - Interactive mode
+
+## [2.3.0] - 2026-04-14
+
+### ✨ New Features
+- **Subdomain Discovery** (`discover` command) — Find subdomains via OSINT
+  - Sources: crt.sh, JLDC.me, RapidDNS.io
+  - Parallel processing with ThreadPoolExecutor
+  - 47 subdomains found for snb.ch in testing
+
+### 🛠️ Improvements
+- **False Positive Filter** — Better filtering for CMS UUIDs
+  - Joomla/CRX content IDs excluded
+  - Image processing hashes filtered
+  - Vulnerability object support
+
+### 🐛 Bug Fixes
+- Fixed `filter_findings` to work with Vulnerability objects (not just dicts)
+- Fixed `discover` command syntax error
+

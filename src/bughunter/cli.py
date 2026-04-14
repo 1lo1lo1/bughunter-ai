@@ -1,7 +1,7 @@
 """
+__version__ = "2.2.0"
 BugHunter AI — Command Line Interface
 """
-import asyncio
 import sys
 import tempfile
 import subprocess
@@ -126,3 +126,37 @@ def scan_url(
 
 if __name__ == "__main__":
     app()
+@app.callback()
+def main(
+    version: bool = typer.Option(False, "--version", "-v", help="Show version"),
+):
+    if version:
+        typer.echo(f"BugHunter AI v{__version__}")
+        raise typer.Exit()
+
+# Subdomain discovery command
+@app.command(name="discover")
+def discover_subdomains_cmd(
+    target: str = typer.Argument(..., help="Target domain (e.g., snb.ch)"),
+    output: str = typer.Option(None, "--output", "-o", help="Output file for results"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+):
+    """
+    🔍 Discover subdomains using OSINT sources (crt.sh, JLDC, RapidDNS)
+    
+    Example: bughunter discover snb.ch --output subdomains.txt
+    """
+    console.print(f"[bold blue]🔍 BugHunter AI — Subdomain Discovery[/bold blue]")
+    console.print(f"Target: {target}\n")
+    
+    from bughunter.discover import discover_subdomains
+    
+    try:
+        result = discover_subdomains(target, output)
+        
+        console.print(f"\n[green]✅ Discovery complete![/green]")
+        console.print(f"Total subdomains found: {result['total_found']}")
+        
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        raise typer.Exit(1)
