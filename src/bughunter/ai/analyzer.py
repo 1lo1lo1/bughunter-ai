@@ -182,7 +182,7 @@ class AIAnalyzer:
                     line = int(item.get("line_number", 1))
 
                     vuln = Vulnerability(
-                        vuln_id=f"AI-{hashlib.md5(f'{file_path}{line}{item.get(\"vuln_type\", \"\")} '.encode()).hexdigest()[:6]}",
+                        vuln_id="AI-" + hashlib.md5((str(file_path) + str(line) + str(item.get("vuln_type", ""))).encode()).hexdigest()[:6],
                         vuln_type=item.get("vuln_type", "unknown"),
                         category=cat,
                         severity=sev,
