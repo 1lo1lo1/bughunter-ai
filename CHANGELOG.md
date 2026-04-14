@@ -59,3 +59,11 @@
 - Fixed `filter_findings` to work with Vulnerability objects (not just dicts)
 - Fixed `discover` command syntax error
 
+
+## [2.3.1] - 2026-04-14
+
+### 🐛 Bug Fixes
+- Fixed missing `asyncio` import in cli.py
+- scan-url command now works correctly
+- discover command verified working
+
