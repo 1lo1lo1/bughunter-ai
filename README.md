@@ -101,6 +101,12 @@ bughunter scan ./src/ --output report.html --format html
 bughunter scan ./src/ --checks cors,sqli,xss,ssrf
 
 # Live monitoring mode
+
+# 🌐 Scan live website (NEW in v2.2.0)
+bughunter scan-url https://target.com --checks cors,secrets,xss --depth 2
+
+# Scan with AI
+bughunter scan-url https://target.com --ai --model ollama:llama3 --depth 3
 bughunter watch ./src/ --ai
 
 # Show CVE references for found bugs
@@ -110,11 +116,28 @@ bughunter scan ./src/ --cve-lookup
 bughunter interactive
 ```
 
+## 🌐 Live URL Scanning (NEW in v2.2.0)
+
+BugHunter AI can now scan **live websites** without manual download!
+
+```bash
+# Basic scan
+bughunter scan-url https://example.com
+
+# Deep scan with specific checks
+bughunter scan-url https://target.com --checks cors,secrets,xss --depth 3
+
+# AI-powered analysis
+bughunter scan-url https://target.com --ai --model ollama:llama3
+
+# JSON output for automation
+bughunter scan-url https://target.com --format json --output results.json
 ---
 
 ## 🧠 How It Works
 
 ```
+
 Source Code
     │
     ▼
