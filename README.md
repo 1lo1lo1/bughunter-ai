@@ -1,58 +1,28 @@
-# 🐛 BugHunter AI
+# 🛡️ BugHunter AI v3.5.0 — ilo Edition
 
-AI-powered security bug hunting tool for bug bounty hunters and security researchers.
+AI-powered security auditing tool designed for Bug Bounty hunters and Security Researchers. Now with professional HTML reporting and advanced vulnerability detection.
 
-[![Version](https://img.shields.io/badge/version-2.3.1-blue)](https://github.com/1lo1lo1/bughunter-ai)
-[![Python](https://img.shields.io/badge/python-3.8+-green)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+## ✨ Key Features (v3.5.0 Update)
+- 🌐 **Advanced Vuln Engine**: Automated detection for **SSTI**, **LFI**, and **Error-based SQLi**.
+- 🔌 **Port Hunter**: Intelligent scanner for exposed databases (MySQL, Redis), SSH, FTP, and Jenkins.
+- 📊 **Pro HTML Audit Reports**: Beautiful, categorized reports featuring **ilo** branding, PoC links, and exploit suggestions.
+- 🎯 **Smart FP Filter**: Content-length and logic-based validation to eliminate False Positives.
+- 🔎 **Subdomain Discovery**: High-speed OSINT discovery (crt.sh, JLDC, RapidDNS).
+- 🤖 **AI Integration**: Local AI analysis using Ollama (Llama 3, Mistral).
 
-## ✨ Features
-
-- 🔍 **Static Analysis (SAST)** — Scan local code for vulnerabilities
-- 🌐 **Live URL Scanner** — Auto-download and scan any website
-- 🔎 **Subdomain Discovery** — Find subdomains via OSINT (crt.sh, JLDC, RapidDNS)
-- 🤖 **AI-Powered Analysis** — Local AI with Ollama integration
-- 🎯 **False Positive Filter** — Smart filtering reduces noise
-- 📊 **Multiple Output Formats** — HTML, JSON, Markdown
-
-## 🚀 Quick Start
+## 🚀 Installation & Quick Start
 
 ```bash
-# Install
-git clone https://github.com/1lo1lo1/bughunter-ai.git
+# Clone the repository
+git clone [https://github.com/1lo1lo1/bughunter-ai.git](https://github.com/1lo1lo1/bughunter-ai.git)
 cd bughunter-ai
+
+# Install in editable mode
 pip install -e .
-
-# Scan local files
-bughunter scan ./my-project/ --deep --ai
-
-# Scan live website
-bughunter scan-url https://target.com --checks cors,secrets,xss --depth 2
-
-# Discover subdomains
-bughunter discover target.com --output subdomains.txt
-
-# AI-powered analysis
-bughunter scan-url https://target.com --ai --model ollama:llama3
-📋 Commands
-Table
-Command	Description	Example
-scan	Scan local files/directories	bughunter scan ./src/ --deep
-scan-url	Scan live website	bughunter scan-url https://site.com --depth 2
-discover	Find subdomains via OSINT	bughunter discover site.com
-🎯 Real-World Results
-Swiss National Bank (snb.ch) testing:
-✅ 47 subdomains discovered
-✅ 64 false positives → 0 (with smart filtering)
-✅ Actual security issues found, not noise
-🛠️ Tech Stack
-Python 3.8+
-Typer (CLI framework)
-Rich (terminal UI)
-Requests/aiohttp (HTTP)
-Ollama (local AI)
+🛠️ Common CommandsCommandDescriptionExamplemass-huntFull audit: Subdomains + Ports + Vulnsbughunter mass-hunt target.comdiscoverFast subdomain OSINT discoverybughunter discover target.comscan-urlDeep scan specific URL for XSS/SSTI/CORSbughunter scan-url https://target.com
+Command,Description,Example
+mass-hunt,Full audit: Subdomains + Ports + Vulns,bughunter mass-hunt target.com
+discover,Fast subdomain OSINT discovery,bughunter discover target.com
+scan-url,Deep scan specific URL for XSS/SSTI/CORS,bughunter scan-url https://target.com
 📄 License
-MIT License — free for personal and commercial use.
-🤝 Contributing
-Stars, issues, and PRs welcome!
-GitHub: https://github.com/1lo1lo1/bughunter-ai
+MIT License — Created by ilo.
